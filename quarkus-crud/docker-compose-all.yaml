@@ -1,0 +1,46 @@
+services:
+  redis:
+    container_name: redis_service
+    image: redis:latest
+    ports:
+      - 6379:6379
+  ignite:
+    container_name: ignite_service
+    #image: apacheignite/ignite
+    image: gridgain/community:8.9.2
+    ports:
+      - 10800:10800
+  cacheservice:
+    image: springboot-cache-image:latest
+    environment:
+      REDIS_URL: redis://redis:6379
+      IGNITE_URL: ignite:10800
+      CACHE_CLIENT: APACHE_IGNITE
+      CACHE_NAME: Cache
+    ports:
+      - 7070:7070
+    depends_on:
+      - redis
+      - ignite
+
+  quarkusclient:
+    container_name: quarkus-client
+    image: quarkus-client
+    environment:
+      BASE_URL: http://cacheservice:7070
+    ports:
+      - 7890:7890
+  quarkuscrud:
+    container_name: quarkus-crud
+    image: quarkus-crud
+    environment:
+      REDIS_URL: redis://redis:6379
+      IGNITE_URL: ignite:10800
+      CACHE_CLIENT: APACHE_IGNITE
+      CACHE_NAME: Cache
+    ports:
+      - 9090:9090
+    depends_on:
+      - redis
+      - ignite
+
